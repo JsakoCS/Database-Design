@@ -91,16 +91,19 @@ def login():
     password_entry_login = tk.Entry(login_window, bg="black", fg="pink", width=50, show="•")
     password_entry_login.pack()
     
-    # Create an initialize database button .
-    login_window_button = tk.Button(login_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="I n i t i a l i z e   D a t a b a s e", width=30, height=3)
+    # Create a login button .
+    login_window_button = tk.Button(login_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="L o g i n", width=30, height=3)
     login_window_button.pack(pady=40)
 
-# Create the Register and Login buttons for the main window .
+# Create the Register , Login , and Initialize Database buttons for the main window .
 register_button = tk.Button(root, bg="pink", fg="black", activebackground="black", activeforeground="black", text="Register", width=25, height=5, command=register)
-register_button.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
+register_button.place(relx=0.5, rely=0.25, anchor=tk.CENTER)
 
 login_button = tk.Button(root, bg="pink", fg="black", activebackground="black", activeforeground="black", text="Login", width=25, height=5, command=login)
-login_button.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
+login_button.place(relx=0.5, rely=0.50, anchor=tk.CENTER)
+
+initialize_database_button = tk.Button(root, bg="pink", fg="black", activebackground="black", activeforeground="black", text="Initialize Database", width=25, height=5) # add command=initialize_database
+initialize_database_button.place(relx=0.5, rely=0.75, anchor=tk.CENTER)
 
 
 
