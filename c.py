@@ -166,6 +166,10 @@ def homepage():
     insert_button = tk.Button(item_frame, text="Insert", font=20, command=post_item)
     insert_button.grid(row=4, column=1, padx=5, pady=5)
 
+    # Create the Search button for the homepage window .
+    search_button = tk.Button(home_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h   ( c a t e g o r i e s )", width=30, height=3, command=search)
+    search_button.pack(pady=50)
+
 
 
 def register():
@@ -332,7 +336,27 @@ def login():
                                     activeforeground="pink", text="L o g i n", width=30, height=3)
     login_window_button.pack(pady=40)
 
+# Define a function to create a new window for the search interface .
+def search():
+    # Create a new window .
+    search_window = tk.Toplevel(root)
+    search_window.title("Search")
+    search_window.configure(bg="pink")
+    search_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
+    # Create a title label ( Search ) .
+    search_label = tk.Label(search_window, bg="pink", text="S e a r c h", font=50)
+    search_label.pack(pady=40)
+
+    # Create one label and entry box ( for search ) .
+    search_label_search = tk.Label(search_window, bg="pink", text="Search ( categories ) :")
+    search_label_search.pack()
+    search_entry_search = tk.Entry(search_window, bg="black", fg="pink", width=50)
+    search_entry_search.pack()
+
+    # Create a search button .
+    search_window_button = tk.Button(search_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h", width=30, height=3)
+    search_window_button.pack(pady=40)
 
 # Create the Register , Login , and Initialize Database buttons for the main window .
 register_button = tk.Button(root, bg="pink", fg="black", activebackground="black", activeforeground="black",
