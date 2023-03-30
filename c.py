@@ -358,6 +358,29 @@ def search():
     search_window_button = tk.Button(search_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h", width=30, height=3)
     search_window_button.pack(pady=40)
 
+# Define a function to retrieve data based on user input and display it in a table / list .
+def search_categories(search_window, search_entry_search):
+    # Retrieve the category name entered by the user .
+    category_name = search_entry_search.get()
+
+    # Execute a SELECT query to retrieve the necessary data .
+    cursor = db.cursor()
+    query = "SELECT * FROM items WHERE category = %s"
+    cursor.execute(query, (category_name,))
+    rows = cursor.fetchall()
+
+    # Display the necessary data in a table / list on the search page .
+    result_label = tk.Label(search_window, bg="pink", text="⚫ ⚫ ⚫")
+    result_label.pack()
+
+    result_listbox = tk.Listbox(search_window, bg="black", fg="pink", width=80)
+    for row in rows:
+        result_listbox.insert(tk.END, row)
+    result_listbox.pack()
+
+    # Close .
+    cursor.close()
+
 # Create the Register , Login , and Initialize Database buttons for the main window .
 register_button = tk.Button(root, bg="pink", fg="black", activebackground="black", activeforeground="black",
                             text="Register", width=25, height=5, command=register)
