@@ -355,7 +355,7 @@ def search():
     search_entry_search.pack()
 
     # Create a search button .
-    search_window_button = tk.Button(search_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h", width=30, height=3)
+    search_window_button = tk.Button(search_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h", width=30, height=3, command=lambda: search_categories(search_window, search_entry_search))
     search_window_button.pack(pady=40)
 
 # Define a function to retrieve data based on user input and display it in a table / list .
