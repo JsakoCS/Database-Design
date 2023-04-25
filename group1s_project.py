@@ -6,12 +6,12 @@ from tkinter import ttk
 
 # End Imports .
 db = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="katty"
-        # user="sqluser",
-        # password="password"
-    )
+    host="localhost",
+    user="root",
+    password="123456"
+    # user="sqluser",
+    # password="password"
+)
 if (db):
     print("coneccted")
 else:
@@ -32,59 +32,59 @@ y = (screen_height // 2) - (window_height // 2)
 
 root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
+
 def initialize():
-
-
     # create the user database and select it
     cursor = db.cursor()
     cursor.execute("SHOW DATABASES")
-    
+
     if "user" not in cursor:
         cursor.execute("CREATE DATABASE IF NOT EXISTS user")
         cursor.execute("USE user")
 
-
-    # create the user table
+        # create the user table
         cursor.execute("CREATE TABLE IF NOT EXISTS user ("
-           "username VARCHAR(255) PRIMARY KEY,"
-           "password VARCHAR(255),"
-           "firstName VARCHAR(255),"
-           "lastName VARCHAR(255),"
-           "email VARCHAR(255) UNIQUE)")
+                       "username VARCHAR(255) PRIMARY KEY,"
+                       "password VARCHAR(255),"
+                       "firstName VARCHAR(255),"
+                       "lastName VARCHAR(255),"
+                       "email VARCHAR(255) UNIQUE)")
         db.commit()
 
-# create the "items" table
+        # create the "items" table
         cursor.execute("CREATE TABLE IF NOT EXISTS items ("
-           "id INT AUTO_INCREMENT PRIMARY KEY,"
-           "user_id VARCHAR(255),"
-           "title VARCHAR(255),"
-           "description TEXT,"
-           "category VARCHAR(255),"
-           "price DECIMAL(10, 2),"
-           "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+                       "id INT AUTO_INCREMENT PRIMARY KEY,"
+                       "user_id VARCHAR(255),"
+                       "title VARCHAR(255),"
+                       "description TEXT,"
+                       "category VARCHAR(255),"
+                       "price DECIMAL(10, 2),"
+                       "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
         db.commit()
         cursor.execute("CREATE TABLE IF NOT EXISTS rateitems ("
-           "id INT,"
-           "user_id VARCHAR(255),"
-           "title VARCHAR(255),"
-           "description TEXT,"
-           "category VARCHAR(255),"
-           "price DECIMAL(10, 2),"
-           "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-           "rate_description TEXT,"
-            "rating VARCHAR(255))")
-        db.commit() 
+                       "id INT,"
+                       "user_id VARCHAR(255),"
+                       "title VARCHAR(255),"
+                       "description TEXT,"
+                       "category VARCHAR(255),"
+                       "price DECIMAL(10, 2),"
+                       "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                       "rate_description TEXT,"
+                       "rating VARCHAR(255))")
+        db.commit()
     else:
         invalidlabel = tk.Label(root, bg="pink", text="DB already initialized")
         invalidlabel.pack()
-        
+
+
 post_count = 0
-#rate_count =0
+# rate_count =0
 usernames = []
-#user_id = []
+
+
+# user_id = []
 # Define a function to create a new window for the register page .
 def homepage():
-
     def post_item():
         global post_count
         first = title_entry.get()
@@ -92,21 +92,21 @@ def homepage():
         user = category_entry.get()
         passw = price_entry.get()
 
-        if(first == "" or last == "" or user == "" or passw == "" ):
+        if (first == "" or last == "" or user == "" or passw == ""):
             popup = tk.Toplevel()
             label = tk.Label(popup, text='Fields cannot be empty')
             label.pack(side="top", fill="x", pady=10)
             B1 = tk.Button(popup, text="OK", command=popup.destroy)
             B1.pack()
         else:
-            result = create1(first, last,user,passw)
+            result = create1(first, last, user, passw)
             if result == "success":
                 success_popup = tk.Toplevel()
                 success_label = tk.Label(success_popup, text='Item inserted successfully.')
                 post_count += 1
                 success_label.pack(side="top", fill="x", pady=10)
                 success_B1 = tk.Button(success_popup, text="OK", command=success_popup.destroy)
-                    # clear the entry fields
+                # clear the entry fields
                 title_entry.delete(0, tk.END)
                 description_entry.delete(0, tk.END)
                 category_entry.delete(0, tk.END)
@@ -120,11 +120,10 @@ def homepage():
                 error_B1 = tk.Button(error_popup, text="OK", command=error_popup.destroy)
                 error_B1.pack()
 
-    def create1(first,last,username, password):
+    def create1(first, last, username, password):
         # create the user database and select it
         cursor = db.cursor()
 
-        
         cursor.execute("SELECT username FROM user WHERE username = %s", (username,))
         result = cursor.fetchone()
         if result is not None:
@@ -136,13 +135,11 @@ def homepage():
                 return "error"
 
         # Insert the item into the database
-        cursor.execute("INSERT INTO items (user_id,title, description, category, price) VALUES (%s, %s, %s, %s, %s)", (usernames, title_entry.get(), description_entry.get(), category_entry.get(), price_entry.get()))
+        cursor.execute("INSERT INTO items (user_id,title, description, category, price) VALUES (%s, %s, %s, %s, %s)",
+                       (usernames, title_entry.get(), description_entry.get(), category_entry.get(), price_entry.get()))
         db.commit()
         cursor.close()
         return "success"
-
-    
-
 
     # create a new Toplevel window
     home_window = tk.Toplevel(root)
@@ -182,9 +179,16 @@ def homepage():
     insert_button.grid(row=4, column=1, padx=5, pady=5)
 
     # Create the Search button for the homepage window .
-    search_button = tk.Button(home_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h   ( c a t e g o r i e s )", width=30, height=3, command=search)
-    search_button.pack(pady=50)
+    search_button = tk.Button(home_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink",
+                              text="S e a r c h   ( c a t e g o r i e s )", width=30, height=3, command=search)
+    search_button.pack(pady=25)
 
+    # Create a new button for the homepage window ( for tasks 1 , 6 , and 7 ) .
+    list_and_display_button = tk.Button(home_window, bg="black", fg="pink", activebackground="pink",
+                                        activeforeground="pink",
+                                        text="P a r t s   1   ,   6   ,   7", width=30, height=3,
+                                        command=list_and_display)
+    list_and_display_button.pack(pady=0)
 
 
 def register():
@@ -195,25 +199,23 @@ def register():
         passw = password_entry.get()
         confirmpass = confirm_password_entry.get()
         email = email_entry.get()
-        if(first == "" or last == "" or user == "" or passw == "" or confirmpass == "" or email == ""):
+        if (first == "" or last == "" or user == "" or passw == "" or confirmpass == "" or email == ""):
             popup = tk.Tk()
             label = tk.Label(popup, text='Fields cannot be empty')
             label.pack(side="top", fill="x", pady=10)
             B1 = tk.Button(popup, text="OK", command=popup.destroy)
             B1.pack()
-            #popup.mainloop()
+            # popup.mainloop()
 
         else:
-            create1(first, last,user,passw,confirmpass,email)
+            create1(first, last, user, passw, confirmpass, email)
 
-    def create1(first,last,username, password,confirm,email):
-
+    def create1(first, last, username, password, confirm, email):
 
         # create the user database and select it
         cursor = db.cursor()
 
-        #cursor.execute("SHOW DATABASES")
-
+        # cursor.execute("SHOW DATABASES")
 
         cursor.execute("USE user")
         cursor.execute("SELECT * FROM user WHERE username = %s OR email = %s",
@@ -222,7 +224,6 @@ def register():
 
         if user:
 
-
             print("User name or email already exists")
             invalidlabel = tk.Label(register_window, bg="pink", text="Username or email already exists")
             invalidlabel.pack()
@@ -230,8 +231,8 @@ def register():
             if (password == confirm):
 
                 cursor.execute("INSERT INTO user (username, password, firstName, lastName, email) "
-                           "VALUES (%s, %s, %s, %s, %s)",
-                           (username, password, first, last, email))
+                               "VALUES (%s, %s, %s, %s, %s)",
+                               (username, password, first, last, email))
                 db.commit()
                 popup = tk.Tk()
                 label = tk.Label(popup, text='Account Registered!')
@@ -242,8 +243,6 @@ def register():
                 print("Passwords not match")
                 invalidlabel = tk.Label(register_window, bg="pink", text="Passwords not match")
                 invalidlabel.pack()
-
-
 
     register_window = tk.Toplevel(root)
     register_window.title("Register")
@@ -287,23 +286,23 @@ def register():
     confirm_password_entry.pack()
 
     # Create a register button .
-    register_window_button = tk.Button(register_window,command=create, bg="black", fg="pink", activebackground="pink",
+    register_window_button = tk.Button(register_window, command=create, bg="black", fg="pink", activebackground="pink",
                                        activeforeground="pink", text="R e g i s t e r", width=30, height=3)
     register_window_button.pack(pady=40)
+
 
 # Define a function to create a new window for the login page .
 def login():
     def submit():
         username = username_entry_login.get()
         password = password_entry_login.get()
-        if(username == "" or password == ""):
+        if (username == "" or password == ""):
             invalidlabel = tk.Label(login_window, bg="pink", text="Fields are empty")
             invalidlabel.pack()
         else:
             submit1(username, password)
 
     def submit1(username, password):
-        
 
         # create the user database and select it
         cursor = db.cursor()
@@ -316,7 +315,7 @@ def login():
 
         if user:
             homepage()
-            global usernames 
+            global usernames
             usernames = username
         else:
             print("invalud")
@@ -346,9 +345,10 @@ def login():
     password_entry_login.pack()
 
     # Create a login button .
-    login_window_button = tk.Button(login_window,command=submit, bg="black", fg="pink", activebackground="pink",
+    login_window_button = tk.Button(login_window, command=submit, bg="black", fg="pink", activebackground="pink",
                                     activeforeground="pink", text="L o g i n", width=30, height=3)
     login_window_button.pack(pady=40)
+
 
 # Define a function to create a new window for the search interface .
 def search():
@@ -369,37 +369,41 @@ def search():
     search_entry_search.pack()
 
     # Create a search button .
-    search_window_button = tk.Button(search_window, bg="black", fg="pink", activebackground="pink", activeforeground="pink", text="S e a r c h", width=30, height=3, command=lambda: search_categories(search_window, search_entry_search))
+    search_window_button = tk.Button(search_window, bg="black", fg="pink", activebackground="pink",
+                                     activeforeground="pink", text="S e a r c h", width=30, height=3,
+                                     command=lambda: search_categories(search_window, search_entry_search))
     search_window_button.pack(pady=40)
 
-rate_count=0
+
+rate_count = 0
+
+
 # Define a function to retrieve data based on user input and display it in a table / list .
 def search_categories(search_window, search_entry_search):
-    
     def rating(evt):
-        
+
         def postrate():
             global rate_count
-            #global rate_count
+            # global rate_count
 
             des = description_entry.get()
             rate = chooserate.get()
             l = list(value)
-            #for name in l:
-            
-                # cursor = db.cursor()
-                # cursor.execute("SELECT * FROM user.items WHERE user_id = %s",(name,))
-                #item=cursor.fetchone()
+            # for name in l:
+
+            # cursor = db.cursor()
+            # cursor.execute("SELECT * FROM user.items WHERE user_id = %s",(name,))
+            # item=cursor.fetchone()
             if usernames in l:
                 print("username found")
                 invalid = tk.Label(rate_window, bg="pink", text="cannot rate your items")
-                invalid.grid(row=7,column=1,) 
-                           
+                invalid.grid(row=7, column=1, )
 
-                    
-                
+
+
+
             else:
-                if(rate_count <3):
+                if (rate_count < 3):
 
                     for i in value:
                         cursor = db.cursor()
@@ -407,51 +411,45 @@ def search_categories(search_window, search_entry_search):
                         cursor.execute(query, (i,))
                         row = cursor.fetchall()
                         for rowc in row:
-                            print(rowc,des,rate)
-                            rowc = rowc+(des,rate)
+                            print(rowc, des, rate)
+                            rowc = rowc + (des, rate)
                             print(rowc)
-                            cursor.execute("INSERT INTO user.rateitems (id,user_id,title,description,category,price,created_at,rate_description,rating) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",rowc)
+                            cursor.execute(
+                                "INSERT INTO user.rateitems (id,user_id,title,description,category,price,created_at,rate_description,rating) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                                rowc)
                             db.commit()
-                    rate_count+=1
+                    rate_count += 1
                 else:
 
-                
                     error_popup = tk.Toplevel()
                     error_label = tk.Label(error_popup, text='Error: You can only rate 3 items a day.')
                     error_label.pack(side="top", fill="x", pady=10)
                     error_B1 = tk.Button(error_popup, text="OK", command=error_popup.destroy)
                     error_B1.pack()
                 # cursor = db.cursor()
-                #       
+                #
 
-
-                        
-                           
-
-
-        value=result_listbox.get(ANCHOR)
+        value = result_listbox.get(ANCHOR)
         rate_window = tk.Toplevel(root)
         rate_window.title("Review Page")
         rate_window.configure(bg="pink")
         rate_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-        
+
         items = []
-        rating = ['excellent','good','fair','poor']
+        rating = ['excellent', 'good', 'fair', 'poor']
         rate_label = tk.Label(rate_window, bg="pink", text=value, font=50)
-        rate_label.grid(row=1,column=1)
+        rate_label.grid(row=1, column=1)
         rate_label = tk.Label(rate_window, bg="pink", text="Rating", font=50)
-        rate_label.grid(row=2,column=1)
-        
-        
-        chooserate = ttk.Combobox(rate_window,width = 27, values=rating)
-        chooserate.grid(column = 1, row = 3)
+        rate_label.grid(row=2, column=1)
+
+        chooserate = ttk.Combobox(rate_window, width=27, values=rating)
+        chooserate.grid(column=1, row=3)
         description_label = tk.Label(rate_window, text="Description:", font=20, bg="pink")
         description_label.grid(row=4, column=1, padx=5, pady=5, sticky="w")
         description_entry = tk.Entry(rate_window, font=20)
         description_entry.grid(row=5, column=1, padx=5, pady=5)
-        
-            
-        ratesubmit = tk.Button(rate_window, text="Rate", font=20,command=postrate)
+
+        ratesubmit = tk.Button(rate_window, text="Rate", font=20, command=postrate)
         ratesubmit.grid(row=6, column=1, padx=5, pady=5)
 
     # Retrieve the category name entered by the user .
@@ -470,11 +468,70 @@ def search_categories(search_window, search_entry_search):
     result_listbox = tk.Listbox(search_window, bg="black", fg="pink", width=80)
     for row in rows:
         result_listbox.insert(tk.END, row)
-    
-    result_listbox.bind("<Double-Button-1>",rating)
+
+    result_listbox.bind("<Double-Button-1>", rating)
     result_listbox.pack()
 
     # Close .
+    cursor.close()
+
+# Define a function to create a new window for tasks 1, 6, and 7 of Phase Three.
+def list_and_display():
+    # Create a new window.
+    list_and_display_window = tk.Toplevel(root)
+    list_and_display_window.title("P a r t s   1   ,   6   ,   7")
+    list_and_display_window.configure(bg="pink")
+    list_and_display_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+    # Create a title label.
+    list_and_display_label = tk.Label(list_and_display_window, bg="pink", text="P a r t s   1   ,   6   ,   7", font=50)
+    list_and_display_label.pack(pady=40)
+
+    # Create a frame to hold the buttons.
+    button_frame = tk.Frame(list_and_display_window, bg="pink")
+    button_frame.pack(pady=25)
+
+    # Create a button for task 1.
+    list_and_display_button_1 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="1", width=10, height=3, command=lambda: list_most_expensive_items(list_and_display_window))
+    list_and_display_button_1.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+    # Create a button for task 6.
+    list_and_display_button_6 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="6", width=10, height=3)
+    list_and_display_button_6.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+    # Create a button for task 7.
+    list_and_display_button_7 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="7", width=10, height=3)
+    list_and_display_button_7.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+
+# Define a function to list the most expensive items in each category.
+def list_most_expensive_items(list_and_display_window):
+    # Create a cursor object.
+    cursor = db.cursor()
+
+    # For each category, the following query will return...
+    # the category name, the highest price for that category, and the title of the item with the highest price in that category.
+    cursor.execute("SELECT category, MAX(price), MAX(title) FROM items GROUP BY category;")
+
+    # Fetch all the results.
+    results = cursor.fetchall()
+
+    # Add a label widget above the displayed data.
+    title_label = tk.Label(list_and_display_window, text="Most Expensive Items", font=("Arial", 13, "underline"),
+                           bg="pink")
+    title_label.pack()
+
+    # Display the results on the list_and_display_window.
+    for category, max_price, title in results:
+        # Create a label with the category, the maximum price, and the maximum title of items for each category.
+        label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10),
+                         text=f"Category: {category}   ,   Title: {title}   ,   Price: {max_price}")
+        label.pack()
+
+    # Close the cursor.
     cursor.close()
 
 # Create the Register , Login , and Initialize Database buttons for the main window .
