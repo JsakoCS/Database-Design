@@ -497,9 +497,10 @@ def list_and_display():
     list_and_display_button_1.pack(side=tk.LEFT, padx=10, fill=tk.X)
 
     # Create a button for task 6.
-    list_and_display_button_6 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
-                                          activeforeground="pink", text="6", width=10, height=3)
-    list_and_display_button_6.pack(side=tk.LEFT, padx=10, fill=tk.X)
+list_and_display_button_6 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                      activeforeground="pink", text="6", width=10, height=3,
+                                      command=lambda: display_users_with_no_excellent_items(list_and_display_window))
+list_and_display_button_6.pack(side=tk.LEFT, padx=10, fill=tk.X)
 
     # Create a button for task 7.
     list_and_display_button_7 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
@@ -529,6 +530,45 @@ def list_most_expensive_items(list_and_display_window):
         # Create a label with the category, the maximum price, and the maximum title of items for each category.
         label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10),
                          text=f"Category: {category}   ,   Title: {title}   ,   Price: {max_price}")
+        label.pack()
+
+    # Close the cursor.
+    cursor.close()
+    
+# Define a function to display users who have never posted any "excellent" items.
+def display_users_with_no_excellent_items(list_and_display_window):
+    # Create a cursor object.
+    cursor = db.cursor()
+
+    # Execute a query to get all users who have never posted any "excellent" items.
+    cursor.execute("""
+        SELECT DISTINCT user.username 
+        FROM user 
+        LEFT JOIN items ON user.username = items.user_id 
+        LEFT JOIN (
+            SELECT rateitems.user_id, COUNT(*) AS num_excellent_items
+            FROM rateitems 
+            WHERE rateitems.rating = 'excellent' 
+            GROUP BY rateitems.user_id 
+            HAVING num_excellent_items >= 3
+        ) AS excellent_items ON user.username = excellent_items.user_id 
+        WHERE excellent_items.num_excellent_items IS NULL
+    """)
+
+    # Fetch all the results.
+    results = cursor.fetchall()
+
+    # Add a label widget above the displayed data.
+    title_label = tk.Label(list_and_display_window, text="Users With No Excellent Items", font=("Arial", 13, "underline"), bg="pink")
+    title_label.pack()
+
+    # Display the results on the list_and_display_window.
+    if results:
+        for result in results:
+            label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10), text=result[0])
+            label.pack()
+    else:
+        label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10), text="No Users Found !")
         label.pack()
 
     # Close the cursor.
