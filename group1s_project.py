@@ -493,20 +493,20 @@ def list_and_display():
 
     # Create a button for task 1.
     list_and_display_button_1 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
-                                          activeforeground="pink", text="1", width=10, height=3, command=lambda: list_most_expensive_items(list_and_display_window))
+                                          activeforeground="pink", text="1", width=10, height=3,
+                                          command=lambda: list_most_expensive_items(list_and_display_window))
     list_and_display_button_1.pack(side=tk.LEFT, padx=10, fill=tk.X)
 
     # Create a button for task 6.
-list_and_display_button_6 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
-                                      activeforeground="pink", text="6", width=10, height=3,
-                                      command=lambda: display_users_with_no_excellent_items(list_and_display_window))
-list_and_display_button_6.pack(side=tk.LEFT, padx=10, fill=tk.X)
+    list_and_display_button_6 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="6", width=10, height=3,
+                                          command=lambda: display_users_with_no_excellent_items(list_and_display_window))
+    list_and_display_button_6.pack(side=tk.LEFT, padx=10, fill=tk.X)
 
     # Create a button for task 7.
     list_and_display_button_7 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
                                           activeforeground="pink", text="7", width=10, height=3)
     list_and_display_button_7.pack(side=tk.LEFT, padx=10, fill=tk.X)
-
 
 # Define a function to list the most expensive items in each category.
 def list_most_expensive_items(list_and_display_window):
