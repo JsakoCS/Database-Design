@@ -505,7 +505,8 @@ def list_and_display():
 
     # Create a button for task 7.
     list_and_display_button_7 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
-                                          activeforeground="pink", text="7", width=10, height=3)
+                                          activeforeground="pink", text="7", width=10, height=3, 
+                                          command=lambda: display_users_who_never_posted_poor_review(list_and_display_window))
     list_and_display_button_7.pack(side=tk.LEFT, padx=10, fill=tk.X)
 
 # Define a function to list the most expensive items in each category.
@@ -560,6 +561,37 @@ def display_users_with_no_excellent_items(list_and_display_window):
 
     # Add a label widget above the displayed data.
     title_label = tk.Label(list_and_display_window, text="Users With No Excellent Items", font=("Arial", 13, "underline"), bg="pink")
+    title_label.pack()
+
+    # Display the results on the list_and_display_window.
+    if results:
+        for result in results:
+            label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10), text=result[0])
+            label.pack()
+    else:
+        label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10), text="No Users Found !")
+        label.pack()
+
+    # Close the cursor.
+    cursor.close()
+
+def display_users_who_never_posted_poor_review(list_and_display_window):
+    # Create a cursor object.
+    cursor = db.cursor()
+
+    # Execute a query to get all users who have never posted a "poor" review.
+    cursor.execute("""
+        SELECT DISTINCT user.username 
+        FROM user 
+        LEFT JOIN rateitems ON user.username = rateitems.user_id AND rateitems.rating = 'poor'
+        WHERE rateitems.rating IS NULL
+    """)
+
+    # Fetch all the results.
+    results = cursor.fetchall()
+
+    # Add a label widget above the displayed data.
+    title_label = tk.Label(list_and_display_window, text='''Users Who've Never Posted A "Poor" Review''', font=("Arial", 13, "underline"), bg="pink")
     title_label.pack()
 
     # Display the results on the list_and_display_window.
