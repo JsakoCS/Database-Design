@@ -3,13 +3,14 @@ from tkinter import messagebox
 import mysql.connector
 from tkinter import *
 from tkinter import ttk
+from datetime import datetime, date
 
 # End Imports .
 db = mysql.connector.connect(
     host="localhost",
     user="root",
     password="123456"
-    # user="sqluser",
+     #user="sqluser",
     # password="password"
 )
 if (db):
@@ -70,6 +71,7 @@ def initialize():
                        "price DECIMAL(10, 2),"
                        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
                        "rate_description TEXT,"
+                       "counter INT,"
                        "rating VARCHAR(255))")
         db.commit()
     else:
@@ -91,7 +93,7 @@ def homepage():
         last = description_entry.get()
         user = category_entry.get()
         passw = price_entry.get()
-
+        
         if (first == "" or last == "" or user == "" or passw == ""):
             popup = tk.Toplevel()
             label = tk.Label(popup, text='Fields cannot be empty')
@@ -126,20 +128,24 @@ def homepage():
 
         cursor.execute("SELECT username FROM user WHERE username = %s", (username,))
         result = cursor.fetchone()
+        user_id = None  # set a default value for user_id
+
         if result is not None:
             user_id = result[0]
-        else:
-            # handle the case where the query returned no results
-            if post_count >= 3:
+
+        # handle the case where the query returned no results
+        if user_id is None:
+            if post_count >= 10:
                 cursor.close()
                 return "error"
 
-        # Insert the item into the database
-        cursor.execute("INSERT INTO items (user_id,title, description, category, price) VALUES (%s, %s, %s, %s, %s)",
-                       (usernames, title_entry.get(), description_entry.get(), category_entry.get(), price_entry.get()))
+        # Insert the item into the database with the user_id
+        cursor.execute("INSERT INTO rateitems (title, description, category, price, user_id) VALUES (%s, %s, %s, %s, %s)",
+                        (title_entry.get(), description_entry.get(), category_entry.get(), price_entry.get(), user_id))
         db.commit()
         cursor.close()
         return "success"
+
 
     # create a new Toplevel window
     home_window = tk.Toplevel(root)
@@ -190,6 +196,12 @@ def homepage():
                                         command=list_and_display)
     list_and_display_button.pack(pady=0)
 
+      # Create a new button for the homepage window ( for tasks 2 , 3 , 4 ) .
+    category_display_button = tk.Button(home_window, bg="blue", fg="pink", activebackground="pink",
+                                        activeforeground="pink",
+                                        text="P a r t s:   2   ,   3   ,   4", width=30, height=3,
+                                        command=category_display)
+    category_display_button.pack(pady=0)
 
 def register():
     def create():
@@ -290,7 +302,6 @@ def register():
                                        activeforeground="pink", text="R e g i s t e r", width=30, height=3)
     register_window_button.pack(pady=40)
 
-
 # Define a function to create a new window for the login page .
 def login():
     def submit():
@@ -306,21 +317,26 @@ def login():
 
         # create the user database and select it
         cursor = db.cursor()
-
         cursor.execute("USE user")
 
-        cursor.execute("SELECT * FROM user WHERE username = %s AND password = %s",
-                       (username, password))
+        # Select the user from the user table
+        cursor.execute("SELECT * FROM user WHERE username = %s AND password = %s", (username, password))
         user = cursor.fetchone()
 
         if user:
+            # Save the username to the rateitems table
+            cursor.execute("INSERT INTO rateitems (user_id) VALUES (%s)", (username,))
+            db.commit()
+
             homepage()
             global usernames
             usernames = username
+                
         else:
-            print("invalud")
+            print("invalid")
             invalidlabel = tk.Label(login_window, bg="pink", text="Wrong username or password")
             invalidlabel.pack()
+
 
     # Create a new window .
     login_window = tk.Toplevel(root)
@@ -349,7 +365,6 @@ def login():
                                     activeforeground="pink", text="L o g i n", width=30, height=3)
     login_window_button.pack(pady=40)
 
-
 # Define a function to create a new window for the search interface .
 def search():
     # Create a new window .
@@ -374,9 +389,7 @@ def search():
                                      command=lambda: search_categories(search_window, search_entry_search))
     search_window_button.pack(pady=40)
 
-
 rate_count = 0
-
 
 # Define a function to retrieve data based on user input and display it in a table / list .
 def search_categories(search_window, search_entry_search):
@@ -474,6 +487,205 @@ def search_categories(search_window, search_entry_search):
 
     # Close .
     cursor.close()
+
+# function for phase 3 part 2,3,4.
+def category_display():
+    # Create a new window.
+    category_display_window = tk.Toplevel(root)
+    category_display_window.title("P a r t s   2   ,   3   ,   4")
+    category_display_window.configure(bg="pink")
+    category_display_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+    # Create a title label.
+    category_display_label = tk.Label(category_display_window, bg="pink", text="P a r t s   2   ,   3   ,   4", font=50)
+    category_display_label.pack(pady=40)
+
+    # Create a frame to hold the buttons.
+    button_frame = tk.Frame(category_display_window, bg="pink")
+    button_frame.pack(pady=25)
+
+
+
+    # Create a button for task 2.
+    category_display_button_2 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                        activeforeground="pink", text="2", width=10, height=3,
+                                        command=lambda: category_user_posted(category_display_window, results_display_window))
+    category_display_button_2.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+    # Create the results display window.
+    results_display_window = tk.Toplevel(category_display_window)
+    # Create a button for task 3.
+    category_display_button_6 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="3", width=10, height=3,
+                                          command=lambda: category_user_comment(category_display_window))
+    category_display_button_6.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+    # Create a button for task 4.
+    category_display_button_7 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="4", width=10, height=3, 
+                                          command=lambda: list_top_posters(category_display_window))
+    category_display_button_7.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+#phase 3 part 2
+def category_user_posted(category_display_window, results_display_window):
+    cursor = db.cursor()
+
+    # Create two Entry widgets for the category inputs.
+    category1_label = tk.Label(category_display_window, text="Category 1:", font=("Arial", 12))
+    category1_label.pack()
+    category1_field = tk.Entry(category_display_window, font=("Arial", 12))
+    category1_field.pack()
+
+    category2_label = tk.Label(category_display_window, text="Category 2:", font=("Arial", 12))
+    category2_label.pack()
+    category2_field = tk.Entry(category_display_window, font=("Arial", 12))
+    category2_field.pack()
+
+    # Add a button to trigger the search.
+    search_button = tk.Button(category_display_window, text="Search", font=("Arial", 12), command=lambda: search(category1_field, category2_field, results_display_window))
+    search_button.pack()
+
+    # Define the search function.
+    def search(category1_field, category2_field, results_display_window):
+        # Retrieve the category search terms from the category1_field and category2_field.
+        category1 = category1_field.get()
+        category2 = category2_field.get()
+
+        # Check if categories are the same.
+        if category1 == category2:
+            title_label = tk.Label(results_display_window, text=f"The two categories must be different.", font=("Arial", 13, "underline"), bg="pink")
+            title_label.pack()
+        else:
+            cursor = db.cursor()
+            query = "SELECT DISTINCT user_id FROM rateitems WHERE category = %s OR category = %s"
+            cursor.execute(query, (category1, category2,))
+            rows = cursor.fetchall()
+
+            # Create two lists to hold the users who posted items in each category.
+            users_in_category1 = []
+            users_in_category2 = []
+
+            # Loop through the results and add the user IDs to the appropriate list.
+            for row in rows:
+                user_id = row[0]
+                query = "SELECT category FROM rateitems WHERE user_id = %s AND (category = %s OR category = %s) GROUP BY category HAVING COUNT(DISTINCT created_at) > 1"
+                cursor.execute(query, (user_id, category1, category2,))
+                categories = [r["category"] for r in cursor.fetchall()]
+                if len(categories) == 2:
+                    if categories[0] == category1:
+                        users_in_category1.append(user_id)
+                        users_in_category2.append(user_id)
+                    else:
+                        users_in_category1.append(user_id)
+                        users_in_category2.append(user_id)
+
+            # Add a label widget above the displayed data.
+            title_label = tk.Label(results_display_window, text=f"Users who posted items in both the {category1} and {category2} categories on the same day", font=("Arial", 13, "underline"), bg="pink")
+            title_label.pack()
+
+            # Display the results on the results_display_window.
+            if users_in_category1 and users_in_category2:
+                for user_id in set(users_in_category1).intersection(users_in_category2):
+                    label_text = f"{user_id}"
+                    label = tk.Label(results_display_window, bg="pink", font=("Arial", 10), text=label_text)
+                    label.pack()
+            else:
+                label = tk.Label(results_display_window, bg="pink", font=("Arial", 10), text=f"No users found who posted items in both the {category1} and {category2} categories on the same day")
+                label.pack()
+
+        # Close the cursor.
+        cursor.close()
+
+
+
+    #phase 3 part 3
+def category_user_comment(category_display_window):
+    cursor = db.cursor()
+
+    cursor.execute("""
+        SELECT DISTINCT user.username AS username 
+        FROM user 
+        LEFT JOIN items ON user.username = items.user_id 
+        LEFT JOIN (
+            SELECT rateitems.user_id, COUNT(*) AS num_good_items  
+            FROM rateitems 
+            WHERE rateitems.rating = 'good'                      
+            GROUP BY rateitems.user_id 
+        ) AS good_items ON user.username = good_items.user_id     
+        LEFT JOIN (
+            SELECT rateitems.user_id, COUNT(*) AS num_excellent_items  
+            FROM rateitems 
+            WHERE rateitems.rating = 'excellent'                      
+            GROUP BY rateitems.user_id 
+        ) AS excellent_items ON user.username = excellent_items.user_id 
+        WHERE good_items.num_good_items IS NOT NULL OR excellent_items.num_excellent_items IS NOT NULL 
+    """)
+
+    # Fetch all the results.
+    results = cursor.fetchall()
+
+    # Add a label widget above the displayed data.
+    title_label = tk.Label(category_display_window, text="Items with Excellent or Good Comments from User", font=("Arial", 13, "underline"), bg="pink")
+    title_label.pack()
+
+    # Display the results on the category_display_window.
+    if results:
+        for result in results:
+            username = result["username"]
+            label_text = "Excellent" if result["num_excellent_items"] else "Good"
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=label_text)
+            label.pack()
+    else:
+        label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="No user item Found for good and excellent")  
+        label.pack()
+
+    # Close the cursor.
+    cursor.close()
+
+#function phase 3 part 4
+def list_top_posters(category_display_window):
+    # Create a cursor object.
+    cursor = db.cursor()
+
+    # Execute a query to find the users who posted the most items since 5/1/2020 (inclusive).
+    cursor.execute("SELECT user_id, COUNT(*) as count FROM rateitems WHERE created_at >= '2020-05-01' GROUP BY user_id ORDER BY count DESC")
+
+    # Fetch all the results.
+    results = cursor.fetchall()
+
+    # Create a list to store the user_id(s) with the highest count.
+    top_posters = []
+
+    # Store the user_id(s) with the highest count in the list.
+    for user_id, count in results:
+        if not top_posters:
+            top_posters.append(user_id)
+            highest_count = count
+        elif count == highest_count:
+            top_posters.append(user_id)
+        else:
+            break
+
+    # Add a label widget above the displayed data.
+    title_label = tk.Label(category_display_window, text="Users who posted the most items since 5/1/2020 (inclusive)",
+                           font=("Arial", 13, "underline"), bg="pink")
+    title_label.pack()
+
+    # Display the results on the category_display_window.
+    if not top_posters:
+        # If no results are found, display a message.
+        no_results_label = tk.Label(category_display_window, bg="pink", font=("Arial", 10),
+                                    text=f"No users found who posted any items since 5/1/2020.")
+        no_results_label.pack()
+    else:
+        # Create a label with the user_id(s) who posted the most items since 5/1/2020 (inclusive).
+        label_text = f"User ID(s): {', '.join(str(user_id) for user_id in top_posters)}\nNumber of items posted: {highest_count}"
+        label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=label_text)
+        label.pack()
+
+    # Close the cursor.
+    cursor.close()
+
 
 # Define a function to create a new window for tasks 1, 6, and 7 of Phase Three.
 def list_and_display():
