@@ -63,7 +63,18 @@ def initialize():
                        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
         db.commit()
         cursor.execute("CREATE TABLE IF NOT EXISTS rateitems ("
-                       "id INT,"
+                       "id INT AUTO_INCREMENT PRIMARY KEY,"
+                       "user_id VARCHAR(255),"
+                       "title VARCHAR(255),"
+                       "description TEXT,"
+                       "category VARCHAR(255),"
+                       "price DECIMAL(10, 2),"
+                       "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                       "rate_description TEXT,"
+                       "rating VARCHAR(255))")
+        db.commit()
+        cursor.execute("CREATE TABLE IF NOT EXISTS raters ("
+                       "id INT AUTO_INCREMENT PRIMARY KEY,"
                        "user_id VARCHAR(255),"
                        "title VARCHAR(255),"
                        "description TEXT,"
@@ -72,7 +83,13 @@ def initialize():
                        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
                        "rate_description TEXT,"
                        "counter INT,"
-                       "rating VARCHAR(255))")
+                       "rating VARCHAR(255),"
+                       "rater VARCHAR(255))")
+        db.commit()
+        cursor.execute("CREATE TABLE IF NOT EXISTS favorite ("
+                       "user_id VARCHAR(255),"
+                       "favorited_by VARCHAR(255))")
+                       
         db.commit()
     else:
         invalidlabel = tk.Label(root, bg="pink", text="DB already initialized")
@@ -140,8 +157,8 @@ def homepage():
                 return "error"
 
         # Insert the item into the database with the user_id
-        cursor.execute("INSERT INTO rateitems (title, description, category, price, user_id) VALUES (%s, %s, %s, %s, %s)",
-                        (title_entry.get(), description_entry.get(), category_entry.get(), price_entry.get(), user_id))
+        cursor.execute("INSERT INTO items (title, description, category, price, user_id) VALUES (%s, %s, %s, %s, %s)",
+                        (title_entry.get(), description_entry.get(), category_entry.get(), price_entry.get(), usernames,))
         db.commit()
         cursor.close()
         return "success"
@@ -202,6 +219,12 @@ def homepage():
                                         text="P a r t s:   2   ,   3   ,   4", width=30, height=3,
                                         command=category_display)
     category_display_button.pack(pady=0)
+
+    displayusers = tk.Button(home_window, bg="black", fg="pink", activebackground="pink",
+                                        activeforeground="pink",
+                                        text="P a r t s:   5   ,   8   ,   9  , 10", width=30, height=3,
+                                        command=users_display)
+    displayusers.pack(pady=0)
 
 def register():
     def create():
@@ -325,8 +348,7 @@ def login():
 
         if user:
             # Save the username to the rateitems table
-            cursor.execute("INSERT INTO rateitems (user_id) VALUES (%s)", (username,))
-            db.commit()
+            
 
             homepage()
             global usernames
@@ -420,16 +442,25 @@ def search_categories(search_window, search_entry_search):
 
                     for i in value:
                         cursor = db.cursor()
-                        query = "SELECT * FROM items WHERE id = %s"
+                        query = "SELECT user_id,title,description,category,price,created_at FROM items WHERE id = %s"
                         cursor.execute(query, (i,))
                         row = cursor.fetchall()
+                        
                         for rowc in row:
                             print(rowc, des, rate)
-                            rowc = rowc + (des, rate)
-                            print(rowc)
+                            rowc1 = rowc + (des, rate)
+                            user = ''.join(usernames)
+                            print("rater's name:" +user)
+                            ratetuples = rowc + (des, rate, user)
+                            
+                                
                             cursor.execute(
-                                "INSERT INTO user.rateitems (id,user_id,title,description,category,price,created_at,rate_description,rating) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                                rowc)
+                                "INSERT INTO rateitems (user_id,title,description,category,price,created_at,rate_description,rating) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                                rowc1)
+                            
+                            cursor.execute(
+                                "INSERT INTO raters (user_id,title,description,category,price,created_at,rate_description,rating,rater) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                                ratetuples)
                             db.commit()
                     rate_count += 1
                 else:
@@ -603,7 +634,9 @@ def category_user_comment(category_display_window):
     cursor = db.cursor()
 
     cursor.execute("""
-        SELECT DISTINCT user.username AS username 
+        SELECT DISTINCT user.username AS username, 
+        good_items.num_good_items AS num_good_items, 
+        excellent_items.num_excellent_items AS num_excellent_items 
         FROM user 
         LEFT JOIN items ON user.username = items.user_id 
         LEFT JOIN (
@@ -628,16 +661,32 @@ def category_user_comment(category_display_window):
     title_label = tk.Label(category_display_window, text="Items with Excellent or Good Comments from User", font=("Arial", 13, "underline"), bg="pink")
     title_label.pack()
 
-    # Display the results on the category_display_window.
-    if results:
-        for result in results:
-            username = result["username"]
-            label_text = "Excellent" if result["num_excellent_items"] else "Good"
-            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=label_text)
+    # Display the dropdown menu for users.
+    user_label = tk.Label(category_display_window, text="Select a user:", font=("Arial", 10), bg="pink")
+    user_label.pack()
+    user_var = tk.StringVar()
+    
+    user_dropdown = tk.OptionMenu(category_display_window, user_var, *[""] + [result["username"] for result in results])
+    user_dropdown.pack()
+
+    def check_comment():
+        user = user_var.get()
+        if user:
+            result = next((r for r in results if r["username"] == user), None)
+            if result:
+                label_text = "Excellent" if result["num_excellent_items"] else "Good"
+                label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=result)
+                label.pack()
+            else:
+                label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="User has no comments.")  
+                label.pack()
+        else:
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="Please select a user.")  
             label.pack()
-    else:
-        label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="No user item Found for good and excellent")  
-        label.pack()
+
+    # Display the button to check comments.
+    check_button = tk.Button(category_display_window, text="Check", command=check_comment)
+    check_button.pack()
 
     # Close the cursor.
     cursor.close()
@@ -794,9 +843,9 @@ def display_users_who_never_posted_poor_review(list_and_display_window):
     # Execute a query to get all users who have never posted a "poor" review.
     cursor.execute("""
         SELECT DISTINCT user.username 
-        FROM user 
-        LEFT JOIN rateitems ON user.username = rateitems.user_id AND rateitems.rating = 'poor'
-        WHERE rateitems.rating IS NULL
+FROM user 
+LEFT JOIN raters ON user.username = raters.rater AND raters.rating = 'poor'
+WHERE raters.rating IS NULL
     """)
 
     # Fetch all the results.
@@ -817,6 +866,229 @@ def display_users_who_never_posted_poor_review(list_and_display_window):
 
     # Close the cursor.
     cursor.close()
+# !!!! FOR PARTS 5,8,9,10
+
+def users_display():
+    
+    # Create a new window.
+    category_display_window = tk.Toplevel(root)
+    category_display_window.title("P a r t s   5   ,   8   ,   9  ,  10")
+    category_display_window.configure(bg="pink")
+    category_display_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    frame= Frame(category_display_window)
+    # Create a title label.
+    category_display_label = tk.Label(category_display_window, bg="pink", text="P a r t s   5   ,   8   ,   9  ,  10", font=50)
+    category_display_label.pack(pady=40)
+# for second page
+    
+
+    # Create a frame to hold the buttons.
+    button_frame = tk.Frame(category_display_window, bg="pink")
+    button_frame.pack(pady=25)
+    task5 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="5", width=10, height=3,
+                                          command=lambda: favorite(category_display_window))
+    task5.pack(side=tk.LEFT, padx=10, fill=tk.X)
+    task5b = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="favorite users", width=10, height=3,
+                                          command=lambda: favoritepage(category_display_window))
+    task5b.pack(side=tk.LEFT, padx=10, fill=tk.X)
+
+    task8 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="8", width=10, height=3,
+                                          command=lambda: poorreview(category_display_window))
+    task8.pack(side=tk.LEFT, padx=10, fill=tk.X)
+    task9 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="9", width=10, height=3,
+                                          command=lambda: items_not_poor(category_display_window))
+    task9.pack(side=tk.LEFT, padx=10, fill=tk.X)
+    task10 = tk.Button(button_frame, bg="black", fg="pink", activebackground="pink",
+                                          activeforeground="pink", text="10", width=10, height=3,
+                                          command=lambda: listpair(category_display_window))
+    task10.pack(side=tk.LEFT, padx=10, fill=tk.X)
+rate1 = []
+rate2 = []
+def favoritepage(category_display_window):
+    def submitfavorite():
+        
+        rating2 = chooseuser2.get()
+
+        cursor = db.cursor()
+        
+        cursor.execute("SELECT * FROM favorite WHERE user_id = %s AND favorited_by = %s",
+        (rating2,usernames,))
+        found2 = cursor.fetchall()
+        if (found2):
+            popup = tk.Toplevel()
+            label = tk.Label(popup, text='already favorited')
+            label.pack(side="top", fill="x", pady=10)
+            B1 = tk.Button(popup, text="OK", command=popup.destroy)
+            B1.pack()
+        else:
+            cursor.execute("INSERT INTO favorite (user_id, favorited_by) VALUES (%s, %s)",
+                (rating2,usernames,))
+           
+            db.commit()
+
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT username FROM user WHERE username != %s;
+    """,(usernames,))
+    results = cursor.fetchall()
+    
+    
+    rate_label = tk.Label(category_display_window, bg="pink", text="users", font=50)
+    rate_label.pack()
+
+    
+    chooseuser2 = ttk.Combobox(category_display_window, width=27, values=results)
+    chooseuser2.pack()
+    submit = tk.Button(category_display_window, command=submitfavorite, bg="black", fg="pink", activebackground="pink",
+                                    activeforeground="pink", text="favorite this person", width=30, height=3)
+    submit.pack(pady=40)
+    
+def favorite(category_display_window):
+   
+    def submitfav():
+        
+        cursor = db.cursor()
+        rate1 = chooseuser1.get()
+        rate2 = chooseuser2.get()
+       
+        
+        print(rate1)
+        cursor.execute("""
+        SELECT user_id
+        FROM favorite
+        WHERE favorited_by = %s OR favorited_by = %s
+        GROUP BY user_id
+        HAVING COUNT(DISTINCT favorited_by) = 2;
+    """,(rate1,rate2))
+        resultfav = cursor.fetchall()
+        for i in resultfav:
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=i)
+            label.pack()
+        
+            
+
+    
+
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT username FROM user;
+    """)
+    results = cursor.fetchall()
+    
+    
+    rate_label = tk.Label(category_display_window, bg="pink", text="users", font=50)
+    rate_label.pack()
+
+    chooseuser1 = ttk.Combobox(category_display_window, width=27, values=results)
+    chooseuser1.pack()
+    chooseuser2 = ttk.Combobox(category_display_window, width=27, values=results)
+    chooseuser2.pack()
+    submit = tk.Button(category_display_window, command=submitfav, bg="black", fg="pink", activebackground="pink",
+                                    activeforeground="pink", text="Find person(s)", width=30, height=3)
+    submit.pack(pady=40)
+    showuser = tk.Label(category_display_window, bg="pink", text="User that has been favorited by 2 chosen users:", font=50)
+    showuser.pack()
+    
+    
+    
+#list pair of users that gave each other execellent
+def listpair(category_display_window):
+    cursor = db.cursor()
+
+    #for i in usernames:
+    
+    cursor.execute("""
+    SELECT r1.user_id, r1.rater
+FROM raters r1
+INNER JOIN raters r2 ON r1.user_id = r2.rater
+                      AND r1.rater = r2.user_id
+WHERE r1.rating = 'excellent'
+AND r2.rating = 'excellent' LIMIT 1;
+    """)
+    results = cursor.fetchall() 
+    if results:
+        for i in results:
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=i)
+            label.pack()
+    else:
+        label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="No pair of users found")
+        label.pack()
+#list items that never get poor reviews and never receive reviews   
+def items_not_poor(category_display_window):
+    #user = ''.join(usernames)
+
+    cursor = db.cursor()
+
+    #for i in usernames:
+    
+    cursor.execute("""
+    SELECT * FROM user.rateitems WHERE rating != 'poor'
+    """)
+    results = cursor.fetchall() 
+    label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="Items that never get poor reviews ")
+    label.pack()
+    if results:
+        for result in results:
+            
+        
+            
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=result)
+            label.pack()
+    else:
+        label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="No items found")
+        label.pack()
+    cursor.execute("""
+    SELECT items.id,items.user_id,items.title,items.description,items.category,items.price
+    FROM items 
+    LEFT JOIN rateitems ON items.title = rateitems.title 
+    WHERE rateitems.rating IS NULL;
+    """)
+    results = cursor.fetchall() 
+    label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="Items that never get rated")
+    label.pack()
+    for i in results:
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=i)
+            label.pack()
+
+def poorreview(category_display_window):
+    
+      
+    cursor = db.cursor()
+
+    
+    cursor.execute("""
+        SELECT user.username
+FROM user
+INNER JOIN raters ON user.username = raters.rater
+WHERE raters.rating = 'poor'
+GROUP BY user.username
+HAVING COUNT(*) = (SELECT COUNT(*) FROM raters WHERE raters.rater = user.username) AND COUNT(*) > 1
+    """)
+    results = cursor.fetchall() 
+    label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="Users who posted all poor reviews(more than 1 post)")
+    label.pack()
+    if results:
+        
+        
+            
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text=results)
+            label.pack()
+    else:
+        
+            label = tk.Label(category_display_window, bg="pink", font=("Arial", 10), text="no users found")
+            label.pack()
+
+    # Fetch all the results.
+       
+
+
+
+
+
 
 # Create the Register , Login , and Initialize Database buttons for the main window .
 register_button = tk.Button(root, bg="pink", fg="black", activebackground="black", activeforeground="black",
