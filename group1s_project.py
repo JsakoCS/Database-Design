@@ -843,9 +843,9 @@ def display_users_who_never_posted_poor_review(list_and_display_window):
     # Execute a query to get all users who have never posted a "poor" review.
     cursor.execute("""
         SELECT DISTINCT user.username 
-FROM user 
-LEFT JOIN raters ON user.username = raters.rater AND raters.rating = 'poor'
-WHERE raters.rating IS NULL
+        FROM user 
+        LEFT JOIN raters ON user.username = raters.rater AND raters.rating = 'poor'
+        WHERE raters.rating IS NULL
     """)
 
     # Fetch all the results.
@@ -866,6 +866,7 @@ WHERE raters.rating IS NULL
 
     # Close the cursor.
     cursor.close()
+    
 # !!!! FOR PARTS 5,8,9,10
 
 def users_display():
