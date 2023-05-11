@@ -52,20 +52,27 @@ def initialize():
                        "email VARCHAR(255) UNIQUE)")
         db.commit()
 
+        # create the "items" table
+        cursor.execute("CREATE TABLE IF NOT EXISTS items ("
+                       "id INT AUTO_INCREMENT PRIMARY KEY,"
+                       "user_id VARCHAR(255),"
+                       "title VARCHAR(255),"
+                       "description TEXT,"
+                       "category VARCHAR(255),"
+                       "price DECIMAL(10, 2),"
+                       "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+        db.commit()
         cursor.execute("CREATE TABLE IF NOT EXISTS rateitems ("
                        "id INT AUTO_INCREMENT PRIMARY KEY,"
                        "user_id VARCHAR(255),"
-                       "name VARCHAR(255),"
                        "title VARCHAR(255),"
                        "description TEXT,"
                        "category VARCHAR(255),"
                        "price DECIMAL(10, 2),"
                        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
                        "rate_description TEXT,"
-                       "rating VARCHAR(255))"
-                       )
+                       "rating VARCHAR(255))")
         db.commit()
-
         cursor.execute("CREATE TABLE IF NOT EXISTS raters ("
                        "id INT AUTO_INCREMENT PRIMARY KEY,"
                        "user_id VARCHAR(255),"
@@ -82,7 +89,7 @@ def initialize():
         cursor.execute("CREATE TABLE IF NOT EXISTS favorite ("
                        "user_id VARCHAR(255),"
                        "favorited_by VARCHAR(255))")
-
+                       
         db.commit()
     else:
         invalidlabel = tk.Label(root, bg="pink", text="DB already initialized")
