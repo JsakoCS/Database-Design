@@ -849,7 +849,7 @@ def list_most_expensive_items(list_and_display_window):
 
     # For each category, the following query will return...
     # the category name, the highest price for that category, and the title of the item with the highest price in that category.
-    cursor.execute("SELECT category, MAX(price), MAX(title) FROM items GROUP BY category;")
+    cursor.execute("SELECT category, price, title FROM items WHERE (category, price) IN (SELECT category, MAX(price) FROM items GROUP BY category)")
 
     # Fetch all the results.
     results = cursor.fetchall()
@@ -861,7 +861,7 @@ def list_most_expensive_items(list_and_display_window):
 
     # Display the results on the list_and_display_window.
     for category, max_price, title in results:
-        # Create a label with the category, the maximum price, and the maximum title of items for each category.
+        # Create a label with the category, the maximum price, and the title of items for each category.
         label = tk.Label(list_and_display_window, bg="pink", font=("Arial", 10),
                          text=f"Category: {category}   ,   Title: {title}   ,   Price: {max_price}")
         label.pack()
